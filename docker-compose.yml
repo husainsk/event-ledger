@@ -1,0 +1,27 @@
+services:
+  account-service:
+    build:
+      context: ./src/AccountService
+      dockerfile: Dockerfile
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  event-gateway:
+    build:
+      context: ./src/EventGateway
+      dockerfile: Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - AccountService__BaseUrl=http://account-service:8080
+    depends_on:
+      account-service:
+        condition: service_healthy
